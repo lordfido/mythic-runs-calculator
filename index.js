@@ -101,15 +101,15 @@
     const forbiddenInstances = [];
 
     // Add playable instances
-    uploadedData.forEach((player) => {
-      player.characters.forEach((char) => {
+    uploadedData.forEach((p) => {
+      p.characters.forEach((char) => {
         const selectedInstance = instancePoints.find(i => i.instance === char.instance);
 
         if (selectedInstance && selectedInstance.points > 0) {
           playableInstances.push({
             instance: char.instance,
             level: char.level,
-            players: [{ player: player.name, character: char.name, spec: char.spec }],
+            players: [{ player: p.name, character: char.name, spec: char.spec }],
             points: selectedInstance.points,
             score: selectedInstance.points + (parseInt(char.level) * 5),
           });
@@ -121,15 +121,15 @@
     playableInstances.sort(sortInstancesByScore);
 
     // Add forbidden instances
-    uploadedData.forEach((player) => {
-      player.characters.forEach((char) => {
+    uploadedData.forEach((p) => {
+      p.characters.forEach((char) => {
         const selectedInstance = instancePoints.find(i => i.instance === char.instance);
 
         if (selectedInstance && selectedInstance.points <= 0) {
           forbiddenInstances.push({
             instance: char.instance,
             level: char.level,
-            players: [{ player: player.name, character: char.name, spec: char.spec }],
+            players: [{ player: p.name, character: char.name, spec: char.spec }],
             points: selectedInstance.points,
             score: selectedInstance.points + (parseInt(char.level) * 5),
           });
@@ -149,28 +149,35 @@
 
   // Get the rest of the team
   function getGroupMembers() {
-    availableInstances.forEach((i) => {
-      const position = characterAssociations.findIndex(c => c.character === i.players[0].character);
+    uploadedData.forEach((p) => {
+      p.characters.forEach((c) => {
+        const position = characterAssociations.findIndex(char => char.character === c.character);
 
-      // If this character is not registered, register it
-      if (position < 0) {
-        characterAssociations.push({
-          player: i.players[0].player,
-          character: i.players[0].character,
-          spec: i.players[0].spec,
-          instances: [{
-            instance: i.instance,
-            level: i.level,
-          }],
-        });
+        log(c, position);
+        // If this character is not registered, register it
+        if (position < 0) {
+          characterAssociations.push({
+            player: p.name,
+            character: c.name,
+            spec: c.spec,
+            instances: c.instance !== ''
+              ? [{
+                instance: c.instance,
+                level: c.level,
+              }]
+              : [],
+          });
 
-      // If character is registered, update its instances record
-      } else {
-        characterAssociations[position].instances.push({
-          instance: i.instance,
-          level: i.lvl,
-        });
-      }
+        // If character is registered, update its instances record
+        } else if (c.instance !== '') {
+          characterAssociations[position].instances.push({
+            instance: c.instance,
+            level: c.lvl,
+          });
+        }
+        
+        log(characterAssociations);
+      });
     });
 
     log('getGroupMembers > characterAssociations', characterAssociations);
