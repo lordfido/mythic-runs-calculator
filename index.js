@@ -43,6 +43,14 @@
     { instance: 'Karazhan inf.', points: 00 },
   ];
 
+  var tankCount = 0;
+  var healCount = 0;
+  var DPSCount = 0;
+
+  const maxTankCount = 1;
+  const maxHealCount = 1;
+  const maxDPSCount = 3;
+
   var uploadedData;
   const availableInstances = [];
   const characterAssociations = [];
@@ -171,24 +179,35 @@
 
   // Get a tank for each instance
   function getTanks() {
+    tankCount += 1;
     getMember('tank');
 
     log('getTanks > availableInstances', availableInstances);
     log('getTanks > characterAssociations', characterAssociations);
-    getHealers();
+    
+    if (tankCount < maxTankCount) {
+      getTanks()
+    } else {
+      getHealers();
+    }
   }
   
   // Get a healer for each instance
   function getHealers() {
+    healCount += 1;
     getMember('heal');
 
     log('getHealers > availableInstances', availableInstances);
     log('getHealers > characterAssociations', characterAssociations);
-    getDPS();
+    
+    if (healCount < maxHealCount) {
+      getHealers()
+    } else {
+      getDPS();
+    }
   }
   
   // Get a healer for each instance
-  var DPSCount = 0;
   function getDPS() {
     DPSCount += 1;
     getMember('dps');
@@ -197,7 +216,7 @@
     log(`getDPS (${DPSCount}) > characterAssociations`, characterAssociations);
 
     // Get 3 DPS
-    if (DPSCount < 3) {
+    if (DPSCount < maxDPSCount) {
       getDPS();
     } else {
       displayTable();
