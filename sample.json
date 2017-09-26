@@ -1,0 +1,71 @@
+[
+  {
+    "name": "Rafa",
+    "characters": [
+      {
+        "name": "Antekera",
+        "spec": "Tank",
+        "instance": "Fauce",
+        "level": "7"
+      },
+      {
+        "name": "Tamarán",
+        "spec": "Tank",
+        "instance": "Valor",
+        "level": "8"
+      },
+      {
+        "name": "Antecuado",
+        "spec": "Heal",
+        "instance": "Fauce",
+        "level": "4"
+      },
+      {
+        "name": "Anterrado",
+        "spec": "Heal",
+        "instance": "Fauce",
+        "level": "7"
+      }
+    ]
+  },
+  {
+    "name": "Vero",
+    "characters": [
+      {
+        "name": "Ishana",
+        "spec": "DPS",
+        "instance": "Celadoras",
+        "level": "5"
+      },
+      {
+        "name": "Aluney",
+        "spec": "DPS",
+        "instance": "Corte",
+        "level": "7"
+      },
+      {
+        "name": "Trizu",
+        "spec": "DPS",
+        "instance": "Ojo",
+        "level": "8"
+      }
+    ]
+  },
+  {
+    "name": "Katoy",
+    "characters": [
+      {
+        "name": "Katoy",
+        "spec": "DPS",
+        "instance": "Catedral",
+        "level": "8"
+      },
+      {
+        "name": "Baksoo",
+        "spec": "Heal",
+        "instance": "Celadoras",
+        "level": "7"
+      }
+    ]
+  }
+]
