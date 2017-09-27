@@ -206,12 +206,19 @@
             level: c.lvl,
           });
         }
-        
-        log(characterAssociations);
       });
     });
 
     log('getGroupMembers > characterAssociations', characterAssociations);
+    getEmptyRoles();
+  }
+
+  // Get empty roles
+  function getEmptyRoles() {
+    tankCount = 0;
+    healCount = 0;
+    DPSCount = 0;
+
     getTanks();
   }
 
@@ -245,7 +252,7 @@
     }
   }
   
-  // Get a healer for each instance
+  // Get a dps for each instance
   function getDPS() {
     DPSCount += 1;
     getMember('dps');
@@ -257,17 +264,18 @@
     if (DPSCount < maxDPSCount) {
       getDPS();
     } else {
-      displayTable();
+      verifyEmptyRoles();
     }
   }
 
+  // Get a member of the specified spec
   function getMember(spec) {
     // Go through each instance
     availableInstances.forEach((i) => {
       // Count for the players on that instance
       const memberCount = i.players.filter(p => p.selectedSpec === spec).length;
 
-      // If there is 1 member with selected spec (3 if spec is DPS)
+      // If there is less than 1 member with selected spec (3 if spec is DPS)
       if (memberCount < 1 || (spec === 'dps' && memberCount < 3)) {
 
         // Get all members with that spec, and sort them by availability (less instances associated)
@@ -316,6 +324,155 @@
         }
       }
     });
+  }
+
+  // Fix possible empty roles
+  function verifyEmptyRoles() {
+    availableInstances.forEach((i) => {
+      const tanksCount = i.players.filter(c => c.selectedSpec === 'tank');
+      const DPSsCount = i.players.filter(c => c.selectedSpec === 'dps');
+      
+      // If there is a tank available, it has been already set as tank,
+      // so there is no sense looking for a tank in case tank is not assigned
+      // because this means there is no tank available.
+      
+      // If there is no healer in the group
+      const healsCount = i.players.filter(c => c.selectedSpec === 'heal');
+      if (healsCount < maxHealCount) {
+        const spec = 'heal';
+        log(`${i.instance} +${i.level} has no <${spec}> associated!`);
+    
+        // Look for a player sith desired spec in the group
+        const possibleOptions = [
+          ...i.players.filter((c) => {
+            return (
+              // Character has a different selectedSpec
+              c.selectedSpec !== spec
+      
+              // Character with desired spec
+              && c.specs.indexOf(spec) > -1
+      
+              // Not the owner of the keystone
+              && c.player !== i.players[0].player
+            );
+          }),
+          ...characterAssociations.filter((c) => {
+            return (
+              // Character with desired spec
+              c.specs.indexOf(spec) > -1
+              
+              // Not the owner of the keystone
+              && c.player !== i.players[0].player
+            );
+          }),
+        ].sort(sortCharactersByAvailability);
+        
+        // If there are possible options in the group
+        if (possibleOptions.length) {
+          log(`These members can perform as <${spec}>:`, possibleOptions);
+    
+          var selectedCharacter;
+    
+          // If there is only one option, take it
+          if (possibleOptions.length === 1) {
+            selectedCharacter = possibleOptions[0];
+    
+          // If there are several options, pick the first DPS that cannot perform as tank
+          } else {
+            selectedCharacter = possibleOptions.filter(c => c.specs.indexOf('tank') < 0)[0];
+          }
+    
+          // If a valid character was selected
+          if (selectedCharacter) {
+            log(`${selectedCharacter.character} (${selectedCharacter.player}) the best option to <${spec}> the instance.`);
+
+            // If selected player already assigned to the group
+            const assignedCharacter = i.players.filter(c => c.player === selectedCharacter.player)
+              && i.players.filter(c => c.player === selectedCharacter.player)[0];
+
+            if (assignedCharacter) {
+
+              // If assigned character is the same character than selected (switch spec)
+              if (assignedCharacter.character === selectedCharacter.character) {
+                log(`${assignedCharacter.character} (${assignedCharacter.player}) is already on the instance as <${assignedCharacter.selectedSpec}>`);
+
+                // If selected character is the Tank of the group, look for a possible replacement
+                if (assignedCharacter.selectedSpec === 'tank') {
+                  log(`${assignedCharacter.character} is the <tank> of the group, looking for a replacement.`);
+    
+                  const otherTanksInTheGroup = i.players.filter(c => {
+                    return (
+                      // Not the current selected tank
+                      c.selectedSpec !== 'tank'
+              
+                      // Character with tank spec
+                      && c.specs.indexOf('tank') > -1
+              
+                      // Not the owner of the keystone
+                      && c.character !== i.players[0].character
+                    );
+                  });
+    
+                  log('Other tanks in the group are: ', otherTanksInTheGroup);
+    
+                  // If available replacement on the group
+                  if (otherTanksInTheGroup.length) {
+                    log(`${otherTanksInTheGroup[0].character} has switched from <${otherTanksInTheGroup[0].selectedSpec}> to <tank>`);
+                    i.players.find(c => c.character === otherTanksInTheGroup[0].character).selectedSpec = 'tank';
+                    
+                    log(`${selectedCharacter.character} has switched from <${selectedCharacter.selectedSpec}> to <${spec}>`);
+                    i.players.find(c => c.character === selectedCharacter.character).selectedSpec = spec;
+                  }
+                
+                // If selected character is not the tank of the group
+                } else {
+                  i.players.find(c => c.character === selectedCharacter.character).selectedSpec = spec;
+                  log(`${selectedCharacter.character} has switched from <${selectedCharacter.selectedSpec}> to <${spec}>`);
+                }
+
+              // If assigned character is not the selected character (needs change character)
+              } else {
+                log(`${assignedCharacter.character} (${assignedCharacter.player}) needs to change its character, joining with ${selectedCharacter.character} as <${assignedCharacter.selectedSpec}>`);
+
+                // Add character to the group
+                const charPosition = i.players.findIndex(c => c.character === assignedCharacter.character);
+                i.players[charPosition] = {
+                  player: selectedCharacter.player,
+                  character: selectedCharacter.character,
+                  specs: selectedCharacter.specs,
+                  selectedSpec: spec,
+                };
+
+                // Remove instance assignament to assignedCharacter
+                const instPosition = characterAssociations.find(c => c.character === assignedCharacter.character).instances.findIndex(ins => ins.instance === i.instance && ins.level === i.level);
+                characterAssociations.find(c => c.character === assignedCharacter.character).instances.splice(instPosition, 1);
+
+                // Add instance assignament to selectedCharacter
+                characterAssociations.find(c => c.character === selectedCharacter.character).instances.push({
+                  instance: i.instance,
+                  level: i.level,
+                });
+              }
+            
+            // Not part of the group
+            } else {
+              i.players.push({
+                player: selectedCharacter.player,
+                character: selectedCharacter.character,
+                specs: selectedCharacter.specs,
+                selectedSpec: spec,
+              });
+              log(`${selectedCharacter.character} has joined to the group as <${spec}>`);
+            }
+            
+            // Complete the group
+            getEmptyRoles();
+          }
+        }
+      }
+    });
+
+    displayTable();
   }
 
   // Draw a table with all the data
