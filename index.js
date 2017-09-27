@@ -340,6 +340,8 @@
       const healsCount = i.players.filter(c => c.selectedSpec === 'heal');
       if (healsCount < maxHealCount) {
         const spec = 'heal';
+        var looking = true;
+
         log(`${i.instance} +${i.level} has no <${spec}> associated!`);
     
         // Look for a player sith desired spec in the group
@@ -392,81 +394,119 @@
 
             if (assignedCharacter) {
 
-              // If assigned character is the same character than selected (switch spec)
-              if (assignedCharacter.character === selectedCharacter.character) {
-                log(`${assignedCharacter.character} (${assignedCharacter.player}) is already on the instance as <${assignedCharacter.selectedSpec}>`);
+              // Reusing these elements
+              function switchCharacterOrSpec(selectedCharacter, assignedCharacter) {
 
-                // If selected character is the Tank of the group, look for a possible replacement
-                if (assignedCharacter.selectedSpec === 'tank') {
-                  log(`${assignedCharacter.character} is the <tank> of the group, looking for a replacement.`);
-    
-                  const otherTanksInTheGroup = i.players.filter(c => {
-                    return (
-                      // Not the current selected tank
-                      c.selectedSpec !== 'tank'
-              
-                      // Character with tank spec
-                      && c.specs.indexOf('tank') > -1
-              
-                      // Not the owner of the keystone
-                      && c.character !== i.players[0].character
-                    );
-                  });
-    
-                  log('Other tanks in the group are: ', otherTanksInTheGroup);
-    
-                  // If available replacement on the group
-                  if (otherTanksInTheGroup.length) {
-                    log(`${otherTanksInTheGroup[0].character} has switched from <${otherTanksInTheGroup[0].selectedSpec}> to <tank>`);
-                    i.players.find(c => c.character === otherTanksInTheGroup[0].character).selectedSpec = 'tank';
-                    
-                    log(`${selectedCharacter.character} has switched from <${selectedCharacter.selectedSpec}> to <${spec}>`);
-                    i.players.find(c => c.character === selectedCharacter.character).selectedSpec = spec;
-                  }
-                
-                // If selected character is not the tank of the group
-                } else {
-                  i.players.find(c => c.character === selectedCharacter.character).selectedSpec = spec;
+                // If assigned character is the same character than selected (switch spec)
+                if (assignedCharacter.character === selectedCharacter.character) {
                   log(`${selectedCharacter.character} has switched from <${selectedCharacter.selectedSpec}> to <${spec}>`);
+                  i.players.find(c => c.character === selectedCharacter.character).selectedSpec = spec;
+
+                // If assigned character is not the selected character (needs change character)
+                } else {
+                  log(`${assignedCharacter.character} (${assignedCharacter.player}) needs to change its character, joining with ${selectedCharacter.character} as <${spec}>`);
+              
+                  // Add character to the group
+                  const charPosition = i.players.findIndex(c => c.character === assignedCharacter.character);
+                  i.players[charPosition] = {
+                    player: selectedCharacter.player,
+                    character: selectedCharacter.character,
+                    specs: selectedCharacter.specs,
+                    selectedSpec: spec,
+                  };
+  
+                  // Remove instance assignament to assignedCharacter
+                  const instPosition = characterAssociations.find(c => c.character === assignedCharacter.character).instances.findIndex(ins => ins.instance === i.instance && ins.level === i.level);
+                  characterAssociations.find(c => c.character === assignedCharacter.character).instances.splice(instPosition, 1);
+  
+                  // Add instance assignament to selectedCharacter
+                  characterAssociations.find(c => c.character === selectedCharacter.character).instances.push({
+                    instance: i.instance,
+                    level: i.level,
+                  });
+                }
+              }
+
+              // If assigned character is the tank of the group
+              if (assignedCharacter.selectedSpec === 'tank') {
+                log(`${assignedCharacter.character} (${assignedCharacter.player}) is the <tank> of the group, looking for a replacement.`);
+
+                const otherTanksInTheGroup = i.players.filter((c) => {
+                  return (
+                    // Character has a different selectedSpec
+                    c.selectedSpec !== 'tank'
+            
+                    // Character with desired spec
+                    && c.specs.indexOf('tank') > -1
+            
+                    // Not the owner of the keystone
+                    && c.player !== i.players[0].player
+
+                    // Not assigned player
+                    && c.player !== assignedCharacter.player
+                  );
+                });
+                
+                // If there are other tanks in the group
+                if (otherTanksInTheGroup.length) {
+                  log('There are other tanks available in the group: ', otherTanksInTheGroup);
+                  switchCharacterOrSpec(selectedCharacter, assignedCharacter);
+                  
+                  // Switch the other tank in the group
+                  log(`${otherTanksInTheGroup[0].character} has switched from <${otherTanksInTheGroup[0].selectedSpec}> to <tank>`);
+                  i.players.find(c => c.character === otherTanksInTheGroup[0].character).selectedSpec = 'tank';
                 }
 
-              // If assigned character is not the selected character (needs change character)
+                const otherTanks = characterAssociations.filter((c) => {
+                  return (
+                    // Character with desired spec
+                    c.specs.indexOf('tank') > -1
+                    
+                    // Not the owner of the keystone
+                    && c.player !== i.players[0].player
+
+                    // Not assigned player
+                    && c.player !== assignedCharacter.player
+                  );
+                }).sort(sortCharactersByAvailability);
+                
+                // If there are other tanks available (out of the group)
+                if (!otherTanksInTheGroup.lenght && otherTanks.length) {
+                  log('There are other tanks available: ', otherTanks);
+                  switchCharacterOrSpec(selectedCharacter, assignedCharacter);
+                }
+
+                if (!otherTanksInTheGroup.length && !otherTanks.length) {
+                  log(`No Tanks available for replacing ${assignedCharacter.character} (${assignedCharacter.player})`);
+                  looking = false;
+                }
+
+              // If assigned character is not the tank
               } else {
-                log(`${assignedCharacter.character} (${assignedCharacter.player}) needs to change its character, joining with ${selectedCharacter.character} as <${assignedCharacter.selectedSpec}>`);
-
-                // Add character to the group
-                const charPosition = i.players.findIndex(c => c.character === assignedCharacter.character);
-                i.players[charPosition] = {
-                  player: selectedCharacter.player,
-                  character: selectedCharacter.character,
-                  specs: selectedCharacter.specs,
-                  selectedSpec: spec,
-                };
-
-                // Remove instance assignament to assignedCharacter
-                const instPosition = characterAssociations.find(c => c.character === assignedCharacter.character).instances.findIndex(ins => ins.instance === i.instance && ins.level === i.level);
-                characterAssociations.find(c => c.character === assignedCharacter.character).instances.splice(instPosition, 1);
-
-                // Add instance assignament to selectedCharacter
-                characterAssociations.find(c => c.character === selectedCharacter.character).instances.push({
-                  instance: i.instance,
-                  level: i.level,
-                });
+                log(`${assignedCharacter.character} (${assignedCharacter.player}) is a <DPS>. Switching.`);
+                switchCharacterOrSpec(selectedCharacter, assignedCharacter);
               }
             
             // Not part of the group
             } else {
+              // Add character to the instance
               i.players.push({
                 player: selectedCharacter.player,
                 character: selectedCharacter.character,
                 specs: selectedCharacter.specs,
                 selectedSpec: spec,
               });
+              
+              // Add instance assignament to selectedCharacter
+              characterAssociations.find(c => c.character === selectedCharacter.character).instances.push({
+                instance: i.instance,
+                level: i.level,
+              });
               log(`${selectedCharacter.character} has joined to the group as <${spec}>`);
             }
             
             // Complete the group
-            getEmptyRoles();
+            if (looking) getEmptyRoles();
           }
         }
       }
@@ -500,7 +540,7 @@
       tbody += `
       <tr>
         <td>${i.instance} +${i.level}</td>
-        <td>${i.players[0].player}</td>
+        <td>${i.players[0].character} (${i.players[0].player})</td>
         <td>
           ${i.players.find(p => p.selectedSpec === 'tank')
             ? i.players.find(p => p.selectedSpec === 'tank').character
