@@ -52,25 +52,36 @@
   const maxDPSCount = 3;
 
   var uploadedData;
-  const availableInstances = [];
-  const characterAssociations = [];
+  var availableInstances = [];
+  var characterAssociations = [];
+
+  const mountPoint = document.querySelector('.MRC');
+  mountPoint.id = 'mythic-calculator';
+  mountPoint.name = 'mythic-calculator';
   
   // Set initial UI
   function setUI() {
-    var filePicker = document.createElement('input');
-    filePicker.type = 'file';
-    filePicker.id = 'file-picker';
-    filePicker.name = 'file-picker';
-    filePicker.addEventListener('change', handleFileChange);
+    var filePickerInput = document.createElement('input');
+    filePickerInput.type = 'file';
+    filePickerInput.id = 'file-picker';
+    filePickerInput.name = 'file-picker';
+    filePickerInput.style = 'display: none';
+    filePickerInput.addEventListener('change', handleFileChange);
 
-    var wrapper = document.createElement('div');
-    wrapper.classList.add('Wrapper');
-    wrapper.id = 'mythic-calculator';
-    wrapper.name = 'mythic-calculator';
+    var filePickerLabel = document.createElement('span');
+    filePickerLabel.innerText = 'Upload file';
 
-    document.body.innerHTML = '';
-    wrapper.appendChild(filePicker)
-    document.body.appendChild(wrapper);
+    var filePickerWrapper = document.createElement('label');
+    filePickerWrapper.classList.add('mc-button');
+    filePickerWrapper.classList.add('mc-button-comb');
+    filePickerWrapper.classList.add('mc-clickable');
+    filePickerWrapper.classList.add('mc-button-raised');
+    filePickerWrapper.setAttribute('mc-action', 'upload');
+
+    filePickerWrapper.appendChild(filePickerInput);
+    filePickerWrapper.appendChild(filePickerLabel);
+
+    mountPoint.appendChild(filePickerWrapper);
   }
 
   // Upload and read a JSON file
@@ -99,6 +110,7 @@
   function getAvailableInstances() {
     const playableInstances = [];
     const forbiddenInstances = [];
+    availableInstances = [];
 
     // Add playable instances
     uploadedData.forEach((p) => {
@@ -149,6 +161,8 @@
 
   // Get the rest of the team
   function getGroupMembers() {
+    characterAssociations = [];
+
     uploadedData.forEach((p) => {
       p.characters.forEach((c) => {
         const position = characterAssociations.findIndex(char => char.character === c.character);
@@ -286,6 +300,7 @@
 
   // Draw a table with all the data
   function displayTable() {
+    const tableId = 'mrc-groups';
 
     // Build table header
     const thead = `
@@ -344,8 +359,20 @@
     });
     tbody += '</tbody>';
 
-    const table = `<table>${thead}${tbody}</table>`;
-    document.body.innerHTML += table;
+    var table = document.querySelector(`#${tableId}`);
+    log('Table exists?: ', table);
+
+    if (!table) {
+      table = document.createElement('table');
+      table.id = tableId;
+      table.classList.add('mc-table');
+      table.classList.add('mc-horizontal');
+      table.style = 'display: table;'
+      
+      mountPoint.appendChild(table);
+    }
+
+    table.innerHTML = `${thead}${tbody}`;
   }
 
   setUI();

@@ -1,0 +1,58 @@
+<html>
+  <head>
+    <title>Mythic Runs Calculator</title>
+    <link href="http://www.material-css.com/material-css.css" type="text/css" rel="stylesheet" />
+    <link href="http://www.material-css.com/color-themes/android-theme.css" type="text/css" rel="stylesheet" />
+  </head>
+  <body mc-layout="no-nav">
+    <!-- Header -->
+    <header class="mc-header">
+      <div class="mc-header-line">
+        <p class="mc-title">Mythic Runs Calculator</p>
+      </div>
+    </header>
+
+    <!-- Content -->
+    <div class="mc-content mc-layout" mc-layout="2">
+      <!-- Instructions -->
+      <div class="mc-layout" mc-layout-size="normal">
+        <div class="mc-card">
+          <div class="mc-header">
+            <h1 class="mc-title">Instructions</h1>
+          </div>
+          <div class="mc-content">
+            <p class="mc-text">Mythic Runs Calculator (MRC) is a small piece of software that takes your M+ group and calculates the best way to combine your characters to complete all your angular keystones.</p>
+            <p class="mc-text">For doing so, you need to upload a JSON file with a particular structure. You have a sample file <a href="https://lordfido.github.io/mythic-runs-calculator/example.json" target="_blank" rel="noopener noreferrer" class="mc-link">here</a>.</p>
+            <p class="mc-text">The software makes sure of having a Tank and a Healer for each stone (if available in your group), and balance the number of instances each character is doing.</p>
+            <p class="mc-text">If you want to know more, please visit our github.</p>
+          </div>
+          <div class="mc-footer">
+            <a
+              href="https://github.com/lordfido/mythic-runs-calculator"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="mc-button mc-button-comb mc-clickable"
+              mc-action="github"
+            >Github</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Result -->
+      <div class="mc-layout" mc-layout-size="normal">
+        <div class="mc-card">
+          <div class="mc-header">
+            <h1 class="mc-title">Calculate!</h1>
+          </div>
+          <div class="MRC mc-content"></div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="mc-footer">
+      <p class="mc-note">Developed by ImperdibleSoft</p>
+    </footer>
+
+    <script src="./index.js"></script>
+  </body>
+</html>
