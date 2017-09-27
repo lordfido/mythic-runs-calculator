@@ -4,25 +4,31 @@
     "characters": [
       {
         "name": "Antekera",
-        "spec": "Tank",
+        "specs": "Tank, DPS",
         "instance": "Fauce",
         "level": "7"
       },
       {
         "name": "Tamarán",
-        "spec": "Tank",
+        "specs": "Tank, Heal, DPS",
         "instance": "Valor",
         "level": "8"
       },
       {
         "name": "Antecuado",
-        "spec": "Heal",
+        "specs": "Heal",
         "instance": "Fauce",
         "level": "4"
       },
       {
+        "name": "Lodrael",
+        "specs": "DPS",
+        "instance": "",
+        "level": ""
+      },
+      {
         "name": "Anterrado",
-        "spec": "Heal",
+        "specs": "Heal",
         "instance": "Fauce",
         "level": "7"
       }
@@ -33,19 +39,19 @@
     "characters": [
       {
         "name": "Ishana",
-        "spec": "DPS",
+        "specs": "DPS",
         "instance": "Celadoras",
         "level": "5"
       },
       {
         "name": "Aluney",
-        "spec": "DPS",
+        "specs": "DPS",
         "instance": "Corte",
         "level": "7"
       },
       {
         "name": "Trizu",
-        "spec": "DPS",
+        "specs": "DPS",
         "instance": "Ojo",
         "level": "8"
       }
@@ -56,15 +62,26 @@
     "characters": [
       {
         "name": "Katoy",
-        "spec": "DPS",
+        "specs": "DPS",
         "instance": "Catedral",
         "level": "8"
       },
       {
         "name": "Baksoo",
-        "spec": "Heal",
+        "specs": "Heal",
         "instance": "Celadoras",
         "level": "7"
+      }
+    ]
+  },
+  {
+    "name": "Facu",
+    "characters": [
+      {
+        "name": "Warriorway",
+        "specs": "DPS, Tank",
+        "instance": "",
+        "level": ""
       }
     ]
   }

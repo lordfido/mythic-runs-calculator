@@ -13,10 +13,16 @@
     return 0;
   }
 
+  // Sort character list by availability (less instances assigned)
   function sortCharactersByAvailability(a,b) {
     if (a.instances.length < b.instances.length) return -1;    
     if (a.instances.length > b.instances.length) return 1;
     return 0;
+  }
+
+  // Remove spaces, tolowercase, to array
+  function normalize(string) {
+    return string.toLowerCase().replace(/\ /g, '').split(',');
   }
 
   const instancePoints = [
@@ -112,19 +118,37 @@
     const forbiddenInstances = [];
     availableInstances = [];
 
+    function parsedInstance(p, char, selectedInstance) {
+      const charSpecs = normalize(char.specs);
+      const selectedSpec = charSpecs.indexOf('tank') > -1
+        ? 'tank'
+        : charSpecs.indexOf('heal') > -1
+          ? 'heal'
+          : 'dps';
+
+      return {
+        instance: char.instance,
+        level: char.level,
+        players: [
+          {
+            player: p.name,
+            character: char.name,
+            specs: charSpecs,
+            selectedSpec: selectedSpec,
+          }
+        ],
+        points: selectedInstance.points,
+        score: selectedInstance.points + (parseInt(char.level) * 5),
+      };
+    }
+
     // Add playable instances
     uploadedData.forEach((p) => {
       p.characters.forEach((char) => {
         const selectedInstance = instancePoints.find(i => i.instance === char.instance);
 
         if (selectedInstance && selectedInstance.points > 0) {
-          playableInstances.push({
-            instance: char.instance,
-            level: char.level,
-            players: [{ player: p.name, character: char.name, spec: char.spec }],
-            points: selectedInstance.points,
-            score: selectedInstance.points + (parseInt(char.level) * 5),
-          });
+          playableInstances.push(parsedInstance(p, char, selectedInstance));
         }
       });
     });
@@ -138,13 +162,7 @@
         const selectedInstance = instancePoints.find(i => i.instance === char.instance);
 
         if (selectedInstance && selectedInstance.points <= 0) {
-          forbiddenInstances.push({
-            instance: char.instance,
-            level: char.level,
-            players: [{ player: p.name, character: char.name, spec: char.spec }],
-            points: selectedInstance.points,
-            score: selectedInstance.points + (parseInt(char.level) * 5),
-          });
+          forbiddenInstances.push(parsedInstance(p, char, selectedInstance));
         }
       });
     });
@@ -167,13 +185,12 @@
       p.characters.forEach((c) => {
         const position = characterAssociations.findIndex(char => char.character === c.character);
 
-        log(c, position);
         // If this character is not registered, register it
         if (position < 0) {
           characterAssociations.push({
             player: p.name,
             character: c.name,
-            spec: c.spec,
+            specs: normalize(c.specs),
             instances: c.instance !== ''
               ? [{
                 instance: c.instance,
@@ -248,14 +265,16 @@
     // Go through each instance
     availableInstances.forEach((i) => {
       // Count for the players on that instance
-      const memberCount = i.players.filter(p => p.spec.toLowerCase() === spec).length;
+      const memberCount = i.players.filter(p => p.selectedSpec === spec).length;
 
       // If there is 1 member with selected spec (3 if spec is DPS)
       if (memberCount < 1 || (spec === 'dps' && memberCount < 3)) {
 
         // Get all members with that spec, and sort them by availability (less instances associated)
-        const membersWithSelectedSpec = characterAssociations.filter(c => c.spec.toLowerCase() === spec).sort(sortCharactersByAvailability);
+        const membersWithSelectedSpec = characterAssociations.filter(c => c.specs.indexOf(spec) > -1).sort(sortCharactersByAvailability);
         const filteredMembers = [];
+
+        log(`Looking for a <${spec}> to do ${i.instance} +${i.level}, from ${i.players[0].character} (${i.players[0].player}). Available options are: `, membersWithSelectedSpec);
 
         // Only add those characters whose players are not in the instance yet
         membersWithSelectedSpec.forEach((m) => {
@@ -271,12 +290,12 @@
           }
         });
 
-
         // If there are members that fit with requirements
         if (filteredMembers.length) {
           
           // Select the first one
           const selectedMember = filteredMembers[0];
+          log(`A ${spec} was found! The choosen one is ${selectedMember.character} (${selectedMember.player})`, selectedMember);
 
           // Add the instance to its record
           characterAssociations.find(c => c.character === selectedMember.character)
@@ -289,7 +308,8 @@
           i.players.push({
             player: selectedMember.player,
             character: selectedMember.character,
-            spec: selectedMember.spec,
+            specs: selectedMember.specs,
+            selectedSpec: spec,
           });
         
         // There are no members that fit with requirements
@@ -325,32 +345,32 @@
         <td>${i.instance} +${i.level}</td>
         <td>${i.players[0].player}</td>
         <td>
-          ${i.players.find(p => p.spec.toLowerCase() === 'tank')
-            ? i.players.find(p => p.spec.toLowerCase() === 'tank').character
+          ${i.players.find(p => p.selectedSpec === 'tank')
+            ? i.players.find(p => p.selectedSpec === 'tank').character
             : ''
           }
         </td>
         <td>
-          ${i.players.find(p => p.spec.toLowerCase() === 'heal')
-            ? i.players.find(p => p.spec.toLowerCase() === 'heal').character
+          ${i.players.find(p => p.selectedSpec === 'heal')
+            ? i.players.find(p => p.selectedSpec === 'heal').character
             : ''
           }
         </td>
         <td>
-          ${i.players.filter(p => p.spec.toLowerCase() === 'dps')[0]
-            ? i.players.filter(p => p.spec.toLowerCase() === 'dps')[0].character
+          ${i.players.filter(p => p.selectedSpec === 'dps')[0]
+            ? i.players.filter(p => p.selectedSpec === 'dps')[0].character
             : ''
           }
         </td>
         <td>
-          ${i.players.filter(p => p.spec.toLowerCase() === 'dps')[1]
-            ? i.players.filter(p => p.spec.toLowerCase() === 'dps')[1].character
+          ${i.players.filter(p => p.selectedSpec === 'dps')[1]
+            ? i.players.filter(p => p.selectedSpec === 'dps')[1].character
             : ''
           }
         </td>
         <td>
-          ${i.players.filter(p => p.spec.toLowerCase() === 'dps')[2]
-            ? i.players.filter(p => p.spec.toLowerCase() === 'dps')[2].character
+          ${i.players.filter(p => p.selectedSpec === 'dps')[2]
+            ? i.players.filter(p => p.selectedSpec === 'dps')[2].character
             : ''
           }
         </td>
@@ -360,7 +380,6 @@
     tbody += '</tbody>';
 
     var table = document.querySelector(`#${tableId}`);
-    log('Table exists?: ', table);
 
     if (!table) {
       table = document.createElement('table');
