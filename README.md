@@ -10,4 +10,6 @@ A simple webapp to automate groups creation based on keystones register
 * [x] Get DPSs for each instance.
 * [x] Allow characters without keystone.
 * [ ] Allow multiple specs per character.
-* [ ] Style display.
+* [ ] If a player can play several roles (Tank & Heal), and he's selected as Tank, but no Healer is available, look for other Tank and change player to Heal.
+* [ ] Force to assign at least 1 instance per character (even if they have no keystone)
+* [ ] Apply styles.
