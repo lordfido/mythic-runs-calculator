@@ -5,19 +5,19 @@
       {
         "name": "Antekera",
         "specs": "Tank, DPS",
-        "instance": "Fauce",
+        "instance": "mos",
         "level": "7"
       },
       {
         "name": "Tamarán",
         "specs": "Tank, Heal, DPS",
-        "instance": "Valor",
+        "instance": "hov",
         "level": "8"
       },
       {
         "name": "Antecuado",
         "specs": "Heal",
-        "instance": "Fauce",
+        "instance": "mos",
         "level": "4"
       },
       {
@@ -29,7 +29,7 @@
       {
         "name": "Anterrado",
         "specs": "Heal",
-        "instance": "Fauce",
+        "instance": "mos",
         "level": "7"
       }
     ]
@@ -40,19 +40,19 @@
       {
         "name": "Ishana",
         "specs": "DPS",
-        "instance": "Celadoras",
+        "instance": "vow",
         "level": "5"
       },
       {
         "name": "Aluney",
         "specs": "DPS",
-        "instance": "Corte",
+        "instance": "cos",
         "level": "7"
       },
       {
         "name": "Trizu",
         "specs": "DPS",
-        "instance": "Ojo",
+        "instance": "eoa",
         "level": "8"
       }
     ]
@@ -63,13 +63,13 @@
       {
         "name": "Katoy",
         "specs": "DPS",
-        "instance": "Catedral",
+        "instance": "cen",
         "level": "8"
       },
       {
         "name": "Baksoo",
         "specs": "Heal",
-        "instance": "Celadoras",
+        "instance": "vow",
         "level": "7"
       }
     ]

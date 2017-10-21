@@ -5,48 +5,97 @@
     <title>Mythic Runs Calculator</title>
     <link href="https://www.virtuamanagement.com/material-css/material-css.css" type="text/css" rel="stylesheet" />
     <link href="https://www.virtuamanagement.com/material-css/color-themes/virtuaManagement-theme.css" type="text/css" rel="stylesheet" />
+
+    <style>
+      .home-template, .options-template { display: inline-block; transition: margin 0.4s; vertical-align: top; }
+      .home-template { margin-left: 0; }
+      .options-template { display: none; margin-left: 100%; }
+    </style>
+
   </head>
   <body mc-layout="no-nav">
     <!-- Header -->
     <header class="mc-header">
       <div class="mc-header-line">
         <p class="mc-title">Mythic Runs Calculator</p>
+        <div class="mc-right">
+          <button
+            id="home"
+            type="button"
+            class="mc-button mc-button-text"
+            style="color: white"
+          >Home</a>
+          <button
+            id="options"
+            type="button"
+            class="mc-button mc-button-text"
+            style="color: white"
+          >Options</a>
+        </div>
       </div>
     </header>
 
     <!-- Content -->
-    <div class="mc-content mc-layout" mc-layout="2">
+    <div class="home-template mc-content">
       <!-- Instructions -->
-      <div class="mc-layout" mc-layout-size="normal">
-        <div class="mc-card">
-          <div class="mc-header">
-            <h1 class="mc-title">Instructions</h1>
-          </div>
-          <div class="mc-content">
-            <p class="mc-text">Mythic Runs Calculator (MRC) is a small piece of software that takes your M+ group and calculates the best way to combine your characters to complete all your angular keystones.</p>
-            <p class="mc-text">For doing so, you need to upload a JSON file with a particular structure. You have a sample file <a href="https://lordfido.github.io/mythic-runs-calculator/example.json" target="_blank" rel="noopener noreferrer" class="mc-link">here</a>.</p>
-            <p class="mc-text">The software makes sure of having a Tank and a Healer for each stone (if available in your group), and balance the number of instances each character is doing.</p>
-            <p class="mc-text">If you want to know more, please visit our github.</p>
-          </div>
-          <div class="mc-footer">
-            <a
-              href="https://github.com/lordfido/mythic-runs-calculator"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="mc-button mc-button-comb mc-clickable"
-              mc-action="github"
-            >Github</a>
-          </div>
+      <div class="mc-card">
+        <div class="mc-header">
+          <h1 class="mc-title">Instructions</h1>
+        </div>
+        <div class="mc-content">
+          <p class="mc-text">Mythic Runs Calculator (MRC) is a small piece of software that takes your M+ group and calculates the best way to combine your characters to complete all your angular keystones.</p>
+          <p class="mc-text">For doing so, you need to upload a JSON file with a particular structure. You have a sample file <a href="https://lordfido.github.io/mythic-runs-calculator/example.json" target="_blank" rel="noopener noreferrer" class="mc-link">here</a>.</p>
+          <p class="mc-text">The software makes sure of having a Tank and a Healer for each stone (if available in your group), and balance the number of instances each character is doing.</p>
+          <p class="mc-text">If you want to know more, please visit our github.</p>
+        </div>
+        <div class="mc-footer">
+          <a
+            href="https://github.com/lordfido/mythic-runs-calculator"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="mc-button mc-button-comb mc-clickable"
+            mc-action="github"
+          >Github</a>
         </div>
       </div>
 
       <!-- Result -->
-      <div class="mc-layout" mc-layout-size="normal">
-        <div class="mc-card">
-          <div class="mc-header">
-            <h1 class="mc-title">Calculate!</h1>
-          </div>
-          <div class="MRC mc-content"></div>
+      <div class="mc-card">
+        <div class="mc-header">
+          <h1 class="mc-title">Calculate!</h1>
+        </div>
+        <div class="MRC mc-content">
+            <label
+              class="mc-button mc-button-comb mc-clickable mc-button-raised"
+              mc-action="upload"
+            >
+              <input
+                id="file-picker"
+                name="file-picker"
+                type="file"
+                style="display: none;"
+              />
+              <span>Upload file</span>
+            </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Options -->
+    <div class="options-template mc-content">
+      <!-- Instance values -->
+      <div class="mc-card">
+        <div class="mc-header">
+          <h1 class="mc-title">Instance values</h1>
+        </div>
+        <div class="mc-content">
+        </div>
+        <div class="mc-footer">
+          <button
+            id="save-instance-values"
+            class="mc-button mc-button-comb mc-clickable"
+            mc-action="save"
+          >Save</button>
         </div>
       </div>
     </div>

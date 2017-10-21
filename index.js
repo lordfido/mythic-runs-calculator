@@ -1,17 +1,27 @@
 (function() {
   const DEBUGGING = true;
-  function log() {
-    if (DEBUGGING) console.log(arguments[0], arguments[1] || '', arguments[2] || '', arguments[3] || '', arguments[4] || '');
+  const log = (first, second, third, fourth) => {
+    if (DEBUGGING) console.log(first, second, third, fourth);
   };
   
   // Sort instance list by score (easiest first)
-  function sortInstancesByScore(a,b) {
+  const sortInstancesByScore = (a,b) => {
     if (a.level > b.level) return -1;    
     if (a.level < b.level) return 1;
     if (a.score > b.score) return -1;
     if (a.score < b.score) return 1;
     return 0;
   }
+
+  // Sort instance list by points (easiest first)
+  const sortInstancesByPoints = (a, b) => {
+    if (a.points > b.points) {
+      return -1;
+    } else if (a.points < b.points) {
+      return 1;
+    }
+    return 0;
+  };
 
   // Sort character list by availability (less instances assigned)
   function sortCharactersByAvailability(a,b) {
@@ -27,26 +37,26 @@
 
   const instancePoints = [
     // Azsuna
-    { instance: 'Ojo',           points: 70 },
-    { instance: 'Celadoras',     points: 20 },
+    { instance: 'Eye of Azshara',               slug: 'eoa', points: 70 },
+    { instance: 'Vault of the Wardens',         slug: 'vow', points: 20 },
     // Valshara
-    { instance: 'Arboleda',      points: 90 },
-    { instance: 'Torreón',       points: 10 },
+    { instance: 'Darkheart Thicket',            slug: 'dht', points: 90 },
+    { instance: 'Black Rook Hold',              slug: 'brh', points: 10 },
     // Monte Alto
-    { instance: 'Neltharion',    points: 80 },
+    { instance: 'Neltharion\'s Lair',           slug: 'nl',  points: 80 },
     // Tormenheim
-    { instance: 'Valor',         points: 50 },
-    { instance: 'Fauce',         points: 60 },
+    { instance: 'Halls of Valor',               slug: 'hov', points: 50 },
+    { instance: 'Maul of Souls',                slug: 'mos', points: 60 },
     // Suramar
-    { instance: 'Arco',          points: 30 },
-    { instance: 'Corte',         points: 40 },
+    { instance: 'The Arcway',                   slug: 'arc', points: 30 },
+    { instance: 'Court of Stars',               slug: 'cos', points: 40 },
     // Costa abrupta
-    { instance: 'Catedral',      points: 00 },
+    { instance: 'Cathedral of eternal night',   slug: 'cen', points: 00 },
     // Argus
-    { instance: 'Triunvirato',   points: 00 },
+    { instance: 'The seat of the triumvirate',  slug: 'sot', points: 00 },
     // Otras
-    { instance: 'Karazhan sup.', points: 00 },
-    { instance: 'Karazhan inf.', points: 00 },
+    { instance: 'Upper Karazhan',               slug: 'uk',  points: 00 },
+    { instance: 'Lower Karazhan',               slug: 'lk',  points: 00 },
   ];
 
   var tankCount = 0;
@@ -64,34 +74,9 @@
   const mountPoint = document.querySelector('.MRC');
   mountPoint.id = 'mythic-calculator';
   mountPoint.name = 'mythic-calculator';
-  
-  // Set initial UI
-  function setUI() {
-    var filePickerInput = document.createElement('input');
-    filePickerInput.type = 'file';
-    filePickerInput.id = 'file-picker';
-    filePickerInput.name = 'file-picker';
-    filePickerInput.style = 'display: none';
-    filePickerInput.addEventListener('change', handleFileChange);
-
-    var filePickerLabel = document.createElement('span');
-    filePickerLabel.innerText = 'Upload file';
-
-    var filePickerWrapper = document.createElement('label');
-    filePickerWrapper.classList.add('mc-button');
-    filePickerWrapper.classList.add('mc-button-comb');
-    filePickerWrapper.classList.add('mc-clickable');
-    filePickerWrapper.classList.add('mc-button-raised');
-    filePickerWrapper.setAttribute('mc-action', 'upload');
-
-    filePickerWrapper.appendChild(filePickerInput);
-    filePickerWrapper.appendChild(filePickerLabel);
-
-    mountPoint.appendChild(filePickerWrapper);
-  }
 
   // Upload and read a JSON file
-  function handleFileChange(e) {
+  const handleFileChange = (e) => {
     e.preventDefault();
   
     const reader = new FileReader();
@@ -113,12 +98,12 @@
   }
 
   // Get all keystones and sort them by score
-  function getAvailableInstances() {
+  const getAvailableInstances = () => {
     const playableInstances = [];
     const forbiddenInstances = [];
     availableInstances = [];
 
-    function parsedInstance(p, char, selectedInstance) {
+    const parsedInstance = (p, char, selectedInstance) => {
       const charSpecs = normalize(char.specs);
       const selectedSpec = charSpecs.indexOf('tank') > -1
         ? 'tank'
@@ -145,7 +130,7 @@
     // Add playable instances
     uploadedData.forEach((p) => {
       p.characters.forEach((char) => {
-        const selectedInstance = instancePoints.find(i => i.instance === char.instance);
+        const selectedInstance = instancePoints.find(i => i.instance === char.instance || i.slug === char.instance);
 
         if (selectedInstance && selectedInstance.points > 0) {
           playableInstances.push(parsedInstance(p, char, selectedInstance));
@@ -159,7 +144,7 @@
     // Add forbidden instances
     uploadedData.forEach((p) => {
       p.characters.forEach((char) => {
-        const selectedInstance = instancePoints.find(i => i.instance === char.instance);
+        const selectedInstance = instancePoints.find(i => i.instance === char.instance || i.slug === char.instance);
 
         if (selectedInstance && selectedInstance.points <= 0) {
           forbiddenInstances.push(parsedInstance(p, char, selectedInstance));
@@ -178,7 +163,7 @@
   }
 
   // Get the rest of the team
-  function getGroupMembers() {
+  const getGroupMembers = () => {
     characterAssociations = [];
 
     uploadedData.forEach((p) => {
@@ -214,7 +199,7 @@
   }
 
   // Get empty roles
-  function getEmptyRoles() {
+  const getEmptyRoles = () => {
     tankCount = 0;
     healCount = 0;
     DPSCount = 0;
@@ -223,7 +208,7 @@
   }
 
   // Get a tank for each instance
-  function getTanks() {
+  const getTanks = () => {
     tankCount += 1;
     getMember('tank');
 
@@ -238,7 +223,7 @@
   }
   
   // Get a healer for each instance
-  function getHealers() {
+  const getHealers = () => {
     healCount += 1;
     getMember('heal');
 
@@ -253,7 +238,7 @@
   }
   
   // Get a dps for each instance
-  function getDPS() {
+  const getDPS = () => {
     DPSCount += 1;
     getMember('dps');
 
@@ -269,7 +254,7 @@
   }
 
   // Get a member of the specified spec
-  function getMember(spec) {
+  const getMember = (spec) => {
     // Go through each instance
     availableInstances.forEach((i) => {
       // Count for the players on that instance
@@ -282,7 +267,7 @@
         const membersWithSelectedSpec = characterAssociations.filter(c => c.specs.indexOf(spec) > -1).sort(sortCharactersByAvailability);
         const filteredMembers = [];
 
-        log(`Looking for a <${spec}> to do ${i.instance} +${i.level}, from ${i.players[0].character} (${i.players[0].player}). Available options are: `, membersWithSelectedSpec);
+        log(`Looking for a <${spec}> to do <${i.instance} +${i.level}>, from <${i.players[0].character} (${i.players[0].player})>. Available options are: `, membersWithSelectedSpec);
 
         // Only add those characters whose players are not in the instance yet
         membersWithSelectedSpec.forEach((m) => {
@@ -303,7 +288,7 @@
           
           // Select the first one
           const selectedMember = filteredMembers[0];
-          log(`A ${spec} was found! The choosen one is ${selectedMember.character} (${selectedMember.player})`, selectedMember);
+          log(`A <${spec}> was found! The choosen one is <${selectedMember.character} (${selectedMember.player})>`, selectedMember);
 
           // Add the instance to its record
           characterAssociations.find(c => c.character === selectedMember.character)
@@ -327,7 +312,7 @@
   }
 
   // Fix possible empty roles
-  function verifyEmptyRoles() {
+  const verifyEmptyRoles = () => {
     availableInstances.forEach((i) => {
       const tanksCount = i.players.filter(c => c.selectedSpec === 'tank');
       const DPSsCount = i.players.filter(c => c.selectedSpec === 'dps');
@@ -342,7 +327,7 @@
         const spec = 'heal';
         var looking = true;
 
-        log(`${i.instance} +${i.level} has no <${spec}> associated!`);
+        log(`<${i.instance} +${i.level}> has no <${spec}> associated!`);
     
         // Look for a player sith desired spec in the group
         const possibleOptions = [
@@ -367,10 +352,15 @@
               && c.player !== i.players[0].player
             );
           }),
-        ].sort(sortCharactersByAvailability);
+        ];
+
+        if (possibleOptions && possibleOptions.instances) {
+          possibleOptions.sort(sortCharactersByAvailability);
+        }
         
         // If there are possible options in the group
         if (possibleOptions.length) {
+
           log(`These members can perform as <${spec}>:`, possibleOptions);
     
           var selectedCharacter;
@@ -386,7 +376,7 @@
     
           // If a valid character was selected
           if (selectedCharacter) {
-            log(`${selectedCharacter.character} (${selectedCharacter.player}) the best option to <${spec}> the instance.`);
+            log(`<${selectedCharacter.character} (${selectedCharacter.player})> the best option to <${spec}> the instance.`);
 
             // If selected player already assigned to the group
             const assignedCharacter = i.players.filter(c => c.player === selectedCharacter.player)
@@ -395,7 +385,7 @@
             if (assignedCharacter) {
 
               // Reusing these elements
-              function switchCharacterOrSpec(selectedCharacter, assignedCharacter) {
+              const switchCharacterOrSpec = (selectedCharacter, assignedCharacter) => {
 
                 // If assigned character is the same character than selected (switch spec)
                 if (assignedCharacter.character === selectedCharacter.character) {
@@ -453,7 +443,7 @@
                   switchCharacterOrSpec(selectedCharacter, assignedCharacter);
                   
                   // Switch the other tank in the group
-                  log(`${otherTanksInTheGroup[0].character} has switched from <${otherTanksInTheGroup[0].selectedSpec}> to <tank>`);
+                  log(`<${otherTanksInTheGroup[0].character}> has switched from <${otherTanksInTheGroup[0].selectedSpec}> to <tank>`);
                   i.players.find(c => c.character === otherTanksInTheGroup[0].character).selectedSpec = 'tank';
                 }
 
@@ -477,13 +467,13 @@
                 }
 
                 if (!otherTanksInTheGroup.length && !otherTanks.length) {
-                  log(`No Tanks available for replacing ${assignedCharacter.character} (${assignedCharacter.player})`);
+                  log(`No Tanks available for replacing <${assignedCharacter.character} (${assignedCharacter.player})>`);
                   looking = false;
                 }
 
               // If assigned character is not the tank
               } else {
-                log(`${assignedCharacter.character} (${assignedCharacter.player}) is a <DPS>. Switching.`);
+                log(`<${assignedCharacter.character} (${assignedCharacter.player})> is a <DPS>. Switching.`);
                 switchCharacterOrSpec(selectedCharacter, assignedCharacter);
               }
             
@@ -502,7 +492,7 @@
                 instance: i.instance,
                 level: i.level,
               });
-              log(`${selectedCharacter.character} has joined to the group as <${spec}>`);
+              log(`<${selectedCharacter.character}> has joined to the group as <${spec}>`);
             }
             
             // Complete the group
@@ -516,7 +506,7 @@
   }
 
   // Draw a table with all the data
-  function displayTable() {
+  const displayTable = () => {
     const tableId = 'mrc-groups';
 
     // Build table header
@@ -539,7 +529,7 @@
     availableInstances.forEach((i) => {
       tbody += `
       <tr>
-        <td>${i.instance} +${i.level}</td>
+        <td>${instancePoints.find(ins => ins.instance === i.instance || ins.slug === i.instance).instance} +${i.level}</td>
         <td>${i.players[0].character} (${i.players[0].player})</td>
         <td>
           ${i.players.find(p => p.selectedSpec === 'tank')
@@ -591,5 +581,100 @@
     table.innerHTML = `${thead}${tbody}`;
   }
 
-  setUI();
+  // Draw a table with instances values
+  const displayInstanceValues = () => {
+    const tableId = 'mrc-instance-values';
+
+    // Sort instances
+    instancePoints.sort(sortInstancesByPoints);
+    
+    // Build table header
+    const thead = `
+    <thead>
+      <tr>
+        <th>Instance</th>
+        <th>Points</th>
+      </tr>
+    </thead>
+    `;
+
+    // Build table body
+    var tbody = '<tbody>';
+
+    instancePoints.forEach((i) => {
+      tbody += `
+      <tr>
+        <td>${i.instance}</td>
+        <td><input type="number" iname="${i.instance}" value="${i.points}" /></td>
+      </tr>
+      `;
+    });
+    tbody += '</tbody>';
+
+    var table = document.querySelector(`#${tableId}`);
+
+    if (!table) {
+      table = document.createElement('table');
+      table.id = tableId;
+      table.classList.add('mc-table');
+      table.classList.add('mc-horizontal');
+      table.style = 'display: table;'
+      
+      document.querySelector('.options-template .mc-card .mc-content').appendChild(table);
+    }
+
+    table.innerHTML = `${thead}${tbody}`;
+  }
+
+  // Save new selected values, update the table and update groups
+  const updateInstanceValues = () => {
+    // Get input data
+    const newValues = Array.from(document.querySelectorAll('input[type="number"]'));
+
+    // Go through each inpu
+    newValues.forEach((instance) => {
+      // Get data
+      const name = instance.attributes.iname.nodeValue;
+      const points = parseInt(instance.value);
+
+      // Update values
+      const mathingInstance = instancePoints.find(i => i.instance === name)
+      if (mathingInstance) {
+        mathingInstance.points = points;
+      }
+    });
+
+    log('displayInstance Values > updateInstanceValues: Values have been updated');
+
+    // Update table
+    if (uploadedData && uploadedData.length) {
+      getAvailableInstances();
+    }
+    displayInstanceValues();
+  }
+
+  // Load home template into HTML
+  const goHome = () => {
+    document.querySelector('.options-template').style.marginLeft = '100%';
+    setTimeout(function() {
+      document.querySelector('.options-template').style.display = 'none';
+      document.querySelector('.home-template').style.marginLeft = '0';
+    }, 400);
+  }
+  
+  // Load options template into HTML
+  const goOptions = () => {
+    displayInstanceValues();
+
+    document.querySelector('.home-template').style.marginLeft = '-100%';
+    document.querySelector('.options-template').style.display = 'block';
+    setTimeout(function() {
+      document.querySelector('.options-template').style.marginLeft = '0';
+    }, 400);
+  }
+
+  document.querySelector('#home').addEventListener('click', goHome);
+  document.querySelector('#options').addEventListener('click', goOptions);
+  document.querySelector('#file-picker').addEventListener('change', handleFileChange);
+  document.querySelector('#save-instance-values').addEventListener('click', updateInstanceValues);
 })();
